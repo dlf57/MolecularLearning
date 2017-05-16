@@ -54,6 +54,7 @@ for argument in sys.argv[1:]:
         #print bonds[-1]
     # Would representing the data as an array make it easier to manipulate?
     #Bonds = np.asarray([bonds], dtype=object)
+    # Instead of a list of strings, bonds will now be in one string
     bond = '\n'.join(bonds)
     print bond
     
@@ -74,6 +75,7 @@ for argument in sys.argv[1:]:
         #angles.append(b.GetAngle(a, c))
         #print angles[-1]
     #Angles = np.asarray([angles], dtype=object)
+    # Instead of a list of strings, angles will now be in one string
     angle = '\n'.join(angles)
     print angle
 
@@ -91,7 +93,7 @@ for argument in sys.argv[1:]:
         dType = atomType(mol, d)
 
         # output in lexographic order
-        if (aType < dType):
+        if (aType < dType):bond
             torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (aType, bType, cType, dType, mol.OBMol.GetTorsion(a, b, c, d)) )
             # The reason for commenting above out would be to get the data only in numbers
             #torsions.append(mol.OBMol.GetTorsion(a, b, c, d))
@@ -101,6 +103,7 @@ for argument in sys.argv[1:]:
             #torsions.append(mol.OBMol.GetTorsion(a, b, c, d))
         #print torsions[-1]
     #Torsions = np.asarray([torsions], dtype=object)
+    # Instead of a list of strings, torsions will now be in one string
     torsion = '\n'.join(torsions)
     print torsion
 
@@ -116,7 +119,7 @@ for argument in sys.argv[1:]:
     #print MolData
 
     # Trying to pickle data into something useful
-    A = [bonds, angles, torsions]
+    A = [bond, angle, torsion]
     B = [name], A, mol.energy
     with open('Molecule_Dataset.pickle', 'ab') as f: # Use 'ab' as it appends instead of 'wb'
         pickle.dump(B, f)
