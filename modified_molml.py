@@ -54,7 +54,9 @@ for argument in sys.argv[1:]:
         #print bonds[-1]
     # Would representing the data as an array make it easier to manipulate?
     #Bonds = np.asarray([bonds], dtype=object)
-
+    bond = '\n'.join(bonds)
+    print bond
+    
     # iterate through all angles
     angles = []
     for angle in ob.OBMolAngleIter(mol.OBMol):
@@ -71,7 +73,9 @@ for argument in sys.argv[1:]:
         # The reason for commenting above out would be to get the data only in numbers
         #angles.append(b.GetAngle(a, c))
         #print angles[-1]
-    #Angles = np.asarray([angles], dtype=object)-
+    #Angles = np.asarray([angles], dtype=object)
+    angle = '\n'.join(angles)
+    print angle
 
     # iterate through all torsions
     torsions = []
@@ -97,7 +101,8 @@ for argument in sys.argv[1:]:
             #torsions.append(mol.OBMol.GetTorsion(a, b, c, d))
         #print torsions[-1]
     #Torsions = np.asarray([torsions], dtype=object)
-
+    torsion = '\n'.join(torsions)
+    print torsion
 
     #molecules = bonds, angles, torsions
     #print name, molecules
