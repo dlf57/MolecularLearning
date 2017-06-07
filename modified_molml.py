@@ -13,6 +13,9 @@ ob = pybel.ob
 conn = sqlite3.connect('MolecularData.db')
 c = conn.cursor()
 
+def create_table():
+    c.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
+
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
     return mol.OBMol.GetAtom(atomIdx).GetType()
@@ -22,8 +25,6 @@ def atomType(mol, atomIdx):
 # we can change this to use the glob module as well
 #  e.g., find all the files in a set of folders
 for argument in sys.argv[1:]:
-    c.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
-
     filename, extension = os.path.splitext(argument)
     # print #should probably take this out later but for now gives spacing
     # Include the filename as to know which file is being read
@@ -113,5 +114,6 @@ for argument in sys.argv[1:]:
     # data = c.fetchall()
     # print data
 
+create_table()
 c.close()
 conn.close()
