@@ -11,10 +11,10 @@ ob = pybel.ob
 # molml.py
 
 conn = sqlite3.connect('MolecularData.db')
-cu = conn.cursor()
+cursor = conn.cursor()
 
 def create_table():
-    cu.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
@@ -107,7 +107,7 @@ for argument in sys.argv[1:]:
     # print torsion
 
 
-    cu.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?, ?)",
+    cursor.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?, ?)",
               (name, bond, angle, torsion, energy))
     conn.commit()
     #
@@ -115,5 +115,5 @@ for argument in sys.argv[1:]:
     # print data
 
 create_table()
-cu.close()
+cursor.close()
 conn.close()
