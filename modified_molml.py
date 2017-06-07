@@ -11,10 +11,10 @@ ob = pybel.ob
 # molml.py
 
 conn = sqlite3.connect('MolecularData.db')
-c = conn.cursor()
+cu = conn.cursor()
 
 def create_table():
-    c.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
+    cu.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
@@ -62,7 +62,7 @@ for argument in sys.argv[1:]:
         #print bonds[-1]
     # Would representing the data as an array make it easier to manipulate?
     # Bonds = np.asarray([bonds], dtype=object)
-    bond = ' , '.join(bonds)
+    bond = '; '.join(bonds)
     # print bond
 
     # iterate through all angles
@@ -80,7 +80,7 @@ for argument in sys.argv[1:]:
         angles.append( "Angle %s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
         #print angles[-1]
     #Angles = np.asarray([angles], dtype=object)
-    angle = ' , '.join(angles)
+    angle = '; '.join(angles)
     # print angle
 
     # iterate through all torsions
@@ -103,11 +103,11 @@ for argument in sys.argv[1:]:
             torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
             #print torsions[-1]
     #Torsions = np.asarray([torsions], dtype=object)
-    torsion = ' , '.join(torsions)
+    torsion = '; '.join(torsions)
     # print torsion
 
 
-    c.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?)",
+    cu.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?, ?)",
               (name, bond, angle, torsion, energy))
     conn.commit()
     #
@@ -115,5 +115,5 @@ for argument in sys.argv[1:]:
     # print data
 
 create_table()
-c.close()
+cu.close()
 conn.close()
