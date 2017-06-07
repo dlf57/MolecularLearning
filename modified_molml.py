@@ -1,39 +1,48 @@
 #!/usr/bin/env python
 
 import sys, os
-import pickle
+import sqlite3
 import numpy as np
 import pybel
 # don't need to reimport openbabel
 ob = pybel.ob
 
 # syntax:
-# molml.py [files]
+# molml.py
+
+conn = sqlite3.connect('MolecularData.db')
+c = conn.cursor()
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
     return mol.OBMol.GetAtom(atomIdx).GetType()
 
+
 # repeat through all the files on the command-line
 # we can change this to use the glob module as well
 #  e.g., find all the files in a set of folders
 for argument in sys.argv[1:]:
+    c.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
+
     filename, extension = os.path.splitext(argument)
-    print #should probably take this out later but for now gives spacing
+    # print #should probably take this out later but for now gives spacing
     # Include the filename as to know which file is being read
     name = os.path.basename(argument)
-    #print name
+    # print name
 
 
     # read the molecule from the supplied file
     mol = pybel.readfile(extension[1:], argument).next()
     #mol = next(pybel.readfile(extension[1:], argument))
     # DLF used in order to view initial outputs (mostly used in Jupyter for quick looks)
-    #mol = next(pybel.readfile("out", "rmsd28_opt.out"))
+    # mol = next(pybel.readfile("out", "rmsd28_opt.out"))
+
+
 
     # In this case I do not include Energy as that is our dependent variable
     #print mol.energy # in kcal/mol
     # ideally, we should turn this into an atomization energy
+    energy = mol.energy
 
     # iterate through all atoms
     #  .. this is commented out because Bag Of Bonds doesn't use atomic charges
@@ -49,15 +58,12 @@ for argument in sys.argv[1:]:
             # swap them for lexographic order
             begin, end = end, begin
         bonds.append("Bond %s-%s, %8.4f" % (begin, end, bond.GetLength()) )
-        # The reason for commenting above out would be to get the data only in numbers
-        #bonds.append(bond.GetLength())
         #print bonds[-1]
     # Would representing the data as an array make it easier to manipulate?
-    #Bonds = np.asarray([bonds], dtype=object)
-    # Instead of a list of strings, bonds will now be in one string
-    bond = '\n'.join(bonds)
-    print bond
-    
+    # Bonds = np.asarray([bonds], dtype=object)
+    bond = ' , '.join(bonds)
+    # print bond
+
     # iterate through all angles
     angles = []
     for angle in ob.OBMolAngleIter(mol.OBMol):
@@ -71,13 +77,10 @@ for argument in sys.argv[1:]:
             # swap them for lexographic order
             aType, cType = cType, aType
         angles.append( "Angle %s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
-        # The reason for commenting above out would be to get the data only in numbers
-        #angles.append(b.GetAngle(a, c))
         #print angles[-1]
     #Angles = np.asarray([angles], dtype=object)
-    # Instead of a list of strings, angles will now be in one string
-    angle = '\n'.join(angles)
-    print angle
+    angle = ' , '.join(angles)
+    # print angle
 
     # iterate through all torsions
     torsions = []
@@ -93,39 +96,22 @@ for argument in sys.argv[1:]:
         dType = atomType(mol, d)
 
         # output in lexographic order
-        if (aType < dType):bond
+        if (aType < dType):
             torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (aType, bType, cType, dType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            # The reason for commenting above out would be to get the data only in numbers
-            #torsions.append(mol.OBMol.GetTorsion(a, b, c, d))
         else:
             torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            # The reason for commenting above out would be to get the data only in numbers
-            #torsions.append(mol.OBMol.GetTorsion(a, b, c, d))
-        #print torsions[-1]
+            #print torsions[-1]
     #Torsions = np.asarray([torsions], dtype=object)
-    # Instead of a list of strings, torsions will now be in one string
-    torsion = '\n'.join(torsions)
-    print torsion
+    torsion = ' , '.join(torsions)
+    # print torsion
 
-    #molecules = bonds, angles, torsions
-    #print name, molecules
 
-# DLF attempt to beautify output and clean it up
-#print name, molecules
-    # Displaying the data
-    #MolData = [bonds], [angles], [torsions]
-    #MolData = [Bonds], [Angles], [Torsions]
-    #MolData = np.asarray([bonds, angles, torsions])
-    #print MolData
+    c.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?)",
+              (name, bond, angle, torsion, energy))
+    conn.commit()
+    #
+    # data = c.fetchall()
+    # print data
 
-    # Trying to pickle data into something useful
-    A = [bond, angle, torsion]
-    B = [name], A, mol.energy
-    with open('Molecule_Dataset.pickle', 'ab') as f: # Use 'ab' as it appends instead of 'wb'
-        pickle.dump(B, f)
-
-# Attempting to open the pickled data
-#pickle_in = open('Molecule_Data.pickle', 'rb')
-#molecule_data = pickle.load(pickle_in)
-#print molecule_data
-
+c.close()
+conn.close()
