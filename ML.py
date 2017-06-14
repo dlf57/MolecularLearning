@@ -17,33 +17,15 @@ for row in cursor:
     angles = row[2]
     torsions = row[3]
     energy = row[4]
-
-    # Bonds, Angles, and Torsions are converted into unicode and must be converted to string
-    bond = unicode.encode(bonds)
-    angle = unicode.encode(angles)
-    torsion = unicode.encode(torsions)
-
-    Bond = bond.split(";")
-    Angle = angle.split(";")
-    Torsion = torsion.split(";")
-
-    # Bonds = float(Bond)
-    # Angles = float(Angle)
-    # Torsions = float(Torsion)
-
-    # Bond = np.asarray(bond)
-    # Angle = np.asarray(angle)
-    # Torsion = np.asarray(torsion)
-    # molecule = np.asarray([Bond, Angle, Torsion])
-
-    # molecule = bond, angle,torsion
-    # print type(Bond)
-
+    
+    entries = bonds.split(";")
+    for entry in entries:
+        type, length = entry.split(",")
+        print float(length)
 
     # vec = DictVectorizer()
     # vec.fit_transform(bond).toarray()
     # print vec
-
 
     # X = [molecule]
     # X = preprocessing.scale(X)
