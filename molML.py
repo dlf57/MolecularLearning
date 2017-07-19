@@ -4,11 +4,8 @@ import sys, os
 import numpy as np
 import pybel
 import pandas as pd
-from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.kernel_ridge import KernelRidge
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.feature_extraction import DictVectorizer
 # don't need to reimport openbabel
 ob = pybel.ob
 
@@ -28,15 +25,21 @@ for argument in sys.argv[1:]:
     filename, extension = os.path.splitext(argument)
     # Include the filename as to know which file is being read
     name = os.path.basename(argument)
-    # print name
 
     # read the molecule from the supplied file
-    mol = pybel.readfile(extension[1:], argument).next()
+    try:
+        # Use this for Python 2.7
+        # mol = pybel.readfile(extension[1:], argument).next()
+        # Use this for Python 3.6
+        mol = next(pybel.readfile(extension[1:], argument))
+    except:
+        pass
+
 
     # In this case I do not include Energy as that is our dependent variable
     #print mol.energy # in kcal/mol
     # ideally, we should turn this into an atomization energy\
-    energy = mol.energy
+    energy = [mol.energy]
     # energy = np.array(mol.energy)
 
 
@@ -56,8 +59,11 @@ for argument in sys.argv[1:]:
         # bonds.append("Bond %s-%s, %8.4f" % (begin, end, bond.GetLength()) )
         # bonds.append("%s-%s, %8.4f" % (begin, end, bond.GetLength()) )
         bonds.append("%8.4f" % (bond.GetLength()))
-        # print bonds[-1]
+        # print (bonds[-1])
         # np.array(bonds)
+    bonds = bonds + ([None] * 98)
+    bonds = np.asarray(bonds, dtype=float)
+    bonds[np.isnan(bonds)] = -99999
 
 
     # iterate through all angles
@@ -75,7 +81,7 @@ for argument in sys.argv[1:]:
         # angles.append( "Angle %s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
         # angles.append( "%s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
         angles.append("%8.3f" % (b.GetAngle(a, c)))
-        #print angles[-1]
+        #print (angles[-1])
 
 
     # iterate through all torsions
@@ -100,45 +106,31 @@ for argument in sys.argv[1:]:
             # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
             # torsions.append( "%s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
             torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
-            #print torsions[-1]
+            #print (torsions[-1])
+    torsions = np.asarray(torsions, dtype=float)
 
 
     dict1 = {}
-    dict1.update({'Name' : name})
-    dict1.update({'Bonds' : bonds})
-    dict1.update({'Angles' : angles})
-    dict1.update({'Torsions' : torsions})
-    dict1.update({'Energy' : energy})
+    dict1.update({'Name': name})
+    dict1.update({'Bonds': bonds})
+    dict1.update({'Angles': angles})
+    dict1.update({'Torsions': torsions})
+    dict1.update({'Energy': energy})
     row_list.append(dict1)
 
 df = pd.DataFrame(row_list, columns=['Name','Bonds','Angles','Torsions', 'Energy'])
-df1 = pd.DataFrame(row_list, columns=['Bonds','Angles','Torsions'])
-# molecule = np.array(df['Bonds'] + df['Angles'] + df['Torsions'])
-# df['Molecule'] = df['Bonds'] + df['Angles'] + df['Torsions']
-# molecule = df['Molecule']
-# molecule = np.array(molecule)
-# bond = df['Bonds']
-# bond = np.array(bond)
-# print df['Bonds'] #molecule
+
+molecules = df['Bonds'] #+ df['Torsions']
 Energy = df['Energy']
-# Energy = np.array(Energy)
-# print Energy
 
-X = df1.as_matrix()
-y = Energy.as_matrix()
-# print len(X), len(y)
-# print X, y
 
-# df.dropna(inplace=True)
-# y = np.array(df['Energy'])
+X =  np.asarray(list(molecules), dtype=np.float)
+y = np.asarray(list(Energy), dtype=np.float)
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-
 clf = KernelRidge()
-
 clf.fit(X_train, y_train)
 accuracy = clf.score(X_test,y_test)
-
 print(accuracy)
