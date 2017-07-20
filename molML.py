@@ -6,6 +6,8 @@ import pybel
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.kernel_ridge import KernelRidge
+import matplotlib.pyplot as plt
+from matplotlib import style
 # don't need to reimport openbabel
 ob = pybel.ob
 
@@ -82,6 +84,9 @@ for argument in sys.argv[1:]:
         # angles.append( "%s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
         angles.append("%8.3f" % (b.GetAngle(a, c)))
         #print (angles[-1])
+    angles = angles + ([None] * 53)
+    angles = np.asarray(angles, dtype=float)
+    angles[np.isnan(angles)] = -99999
 
 
     # iterate through all torsions
@@ -110,7 +115,10 @@ for argument in sys.argv[1:]:
     torsions = np.asarray(torsions, dtype=float)
 
 
+    mol = np.concatenate((bonds,angles,torsions))
+
     dict1 = {}
+    dict1.update({'Molecule': mol})
     dict1.update({'Name': name})
     dict1.update({'Bonds': bonds})
     dict1.update({'Angles': angles})
@@ -118,19 +126,40 @@ for argument in sys.argv[1:]:
     dict1.update({'Energy': energy})
     row_list.append(dict1)
 
-df = pd.DataFrame(row_list, columns=['Name','Bonds','Angles','Torsions', 'Energy'])
-
-molecules = df['Bonds'] #+ df['Torsions']
+# df = pd.DataFrame(row_list, columns=['Name','Bonds','Angles','Torsions', 'Energy'])
+df = pd.DataFrame(row_list, columns=['Name', 'Molecule', 'Energy'])
+# molecules = df['Bonds']
+# molecules = np.column_stack((df['Bonds'],df['Angles'],df['Torsions']))
+molecules = df['Molecule']
 Energy = df['Energy']
 
-
-X =  np.asarray(list(molecules), dtype=np.float)
+X = np.asarray(list(molecules), dtype=np.float)
 y = np.asarray(list(Energy), dtype=np.float)
 
+print (X)
+print (X.dtype)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+print (X_train.shape)
+print (y_train.shape)
 
 clf = KernelRidge()
 clf.fit(X_train, y_train)
 accuracy = clf.score(X_test,y_test)
 print(accuracy)
+
+
+predicted = clf.predict(X_test)
+print (predicted)
+print (y_test)
+
+df1 = pd.DataFrame(predicted, columns=['Predicted'])
+df2 = pd.DataFrame(y_test, columns=['Actual'])
+
+
+plt.scatter(y_test, predicted)
+# plt.legend(loc=4)
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
