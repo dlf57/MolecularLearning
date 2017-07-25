@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os
+import sys
+import os
 import numpy as np
 import pybel
 import pandas as pd
@@ -13,6 +14,7 @@ ob = pybel.ob
 
 # syntax:
 # molml.py
+
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
@@ -38,7 +40,7 @@ for argument in sys.argv[1:]:
         pass
 
     # In this case I do not include Energy as that is our dependent variable
-    #print mol.energy # in kcal/mol
+    # print mol.energy # in kcal/mol
     # ideally, we should turn this into an atomization energy\
     energy = [mol.energy]
 
@@ -55,8 +57,10 @@ for argument in sys.argv[1:]:
         if (end < begin):
             # swap them for lexographic order
             begin, end = end, begin
-        # bonds.append("Bond %s-%s, %8.4f" % (begin, end, bond.GetLength()) )
-        # bonds.append("%s-%s, %8.4f" % (begin, end, bond.GetLength()) )
+        # bonds.append("Bond %s-%s, %8.4f" %
+        #              (begin, end, bond.GetLength()))
+        # bonds.append("%s-%s, %8.4f" %
+        #              (begin, end, bond.GetLength()))
         bonds.append("%8.4f" % (bond.GetLength()))
         # print (bonds[-1])
     bonds = bonds + ([None] * 98)
@@ -75,10 +79,12 @@ for argument in sys.argv[1:]:
         if (cType < aType):
             # swap them for lexographic order
             aType, cType = cType, aType
-        # angles.append( "Angle %s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
-        # angles.append( "%s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
+        # angles.append("Angle %s-%s-%s, %8.3f" %
+        #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
+        # angles.append("%s-%s-%s, %8.3f" %
+        #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
         angles.append("%8.3f" % (b.GetAngle(a, c)))
-        #print (angles[-1])
+        # print (angles[-1])
     angles = angles + ([None] * 53)
     angles = np.asarray(angles, dtype=float)
     angles[np.isnan(angles)] = -99999
@@ -98,18 +104,26 @@ for argument in sys.argv[1:]:
 
         # output in lexographic order
         if (aType < dType):
-            # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (aType, bType, cType, dType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            # torsions.append( "%s-%s-%s-%s, %8.3f" % (aType, bType, cType, dType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            torsions.append( "%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)) )
-        else:
-            # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            # torsions.append( "%s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
+            # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
+            #                  (aType, bType, cType, dType,
+            #                   mol.OBMol.GetTorsion(a, b, c, d)) )
+            # torsions.append( "%s-%s-%s-%s, %8.3f" %
+            #                  (aType, bType, cType, dType,
+            #                   mol.OBMol.GetTorsion(a, b, c, d)))
             torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
-            #print (torsions[-1])
+        else:
+            # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
+            #                  (dType, cType, bType, aType,
+            #                   mol.OBMol.GetTorsion(a, b, c, d)))
+            # torsions.append( "%s-%s-%s-%s, %8.3f" %
+            #                  (dType, cType, bType, aType,
+            #                   mol.OBMol.GetTorsion(a, b, c, d)))
+            torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
+            # print (torsions[-1])
     torsions = np.asarray(torsions, dtype=float)
 
     # store the bonds angles and torsions as molecule descriptors
-    molecule_descriptor = np.concatenate((bonds,angles,torsions))
+    molecule_descriptor = np.concatenate((bonds, angles, torsions))
 
     # store the descriptors for the molecules in a dictionary
     dict1 = {}
@@ -122,7 +136,8 @@ for argument in sys.argv[1:]:
     row_list.append(dict1)
 
 # make a dataframe of all the molecules, their descriptors and energies
-# df = pd.DataFrame(row_list, columns=['Name','Bonds','Angles','Torsions', 'Energy'])
+# df = pd.DataFrame(row_list,
+#                   columns=['Name','Bonds','Angles','Torsions', 'Energy'])
 df = pd.DataFrame(row_list, columns=['Name', 'Molecule', 'Energy'])
 molecules = df['Molecule']
 Energy = df['Energy']
@@ -137,19 +152,19 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 clf = KernelRidge()
 clf.fit(X_train, y_train)
-accuracy = clf.score(X_test,y_test)
+accuracy = clf.score(X_test, y_test)
 print(accuracy)
 
 predicted = clf.predict(X_test)
 
-# dataframe to organize the predicted and actual values (just visual for me, feel free to comment out)
+# dataframe to organize the predicted and actual values
 df_predicted = pd.DataFrame(predicted, columns=['Predicted'])
 df_actual = pd.DataFrame(y_test, columns=['Actual'])
-print (df_predicted)
-print (df_actual)
+print(df_predicted)
+print(df_actual)
 
 # plotting the actual vs. the predicted to get a visual representation
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(8, 6))
 plt.scatter(y_test, predicted)
 plt.title('Comparison of Energies', fontsize=16)
 plt.xlabel('Actual', fontsize=12)
