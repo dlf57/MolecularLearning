@@ -41,7 +41,7 @@ for argument in sys.argv[1:]:
 
     # In this case I do not include Energy as that is our dependent variable
     # print mol.energy # in kcal/mol
-    # ideally, we should turn this into an atomization energy\
+    # ideally, we should turn this into an atomization energy
     energy = [mol.energy]
 
     # iterate through all atoms
@@ -63,9 +63,6 @@ for argument in sys.argv[1:]:
         #              (begin, end, bond.GetLength()))
         bonds.append("%8.4f" % (bond.GetLength()))
         # print (bonds[-1])
-    # bonds = bonds + ([None] * 98)
-    # bonds = np.asarray(bonds, dtype=float)
-    # bonds[np.isnan(bonds)] = -99999
 
     # iterate through all angles
     angles = []
@@ -85,9 +82,6 @@ for argument in sys.argv[1:]:
         #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
         angles.append("%8.3f" % (b.GetAngle(a, c)))
         # print (angles[-1])
-    # angles = angles + ([None] * 53)
-    # angles = np.asarray(angles, dtype=float)
-    # angles[np.isnan(angles)] = -99999
 
     # iterate through all torsions
     torsions = []
@@ -140,15 +134,10 @@ for argument in sys.argv[1:]:
     dict1 = {}
     dict1.update({'Molecule': molecule_descriptor})
     dict1.update({'Name': name})
-    # dict1.update({'Bonds': bonds})
-    # dict1.update({'Angles': angles})
-    # dict1.update({'Torsions': torsions})
     dict1.update({'Energy': energy})
     row_list.append(dict1)
 
 # make a dataframe of all the molecules, their descriptors and energies
-# df = pd.DataFrame(row_list,
-#                   columns=['Name','Bonds','Angles','Torsions', 'Energy'])
 df = pd.DataFrame(row_list, columns=['Name', 'Molecule', 'Energy'])
 molecules = df['Molecule']
 Energy = df['Energy']
@@ -171,8 +160,8 @@ predicted = clf.predict(X_test)
 # dataframe to organize the predicted and actual values
 df_predicted = pd.DataFrame(predicted, columns=['Predicted'])
 df_actual = pd.DataFrame(y_test, columns=['Actual'])
-print(df_predicted)
-print(df_actual)
+df_compare = pd.concat([df_predicted, df_actual], axis = 1)
+print(df_compare)
 
 # plotting the actual vs. the predicted to get a visual representation
 plt.figure(figsize=(8, 6))
