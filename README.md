@@ -10,6 +10,7 @@ that it can be used for more general molecular learning applications in the futu
 # Future direction:
  - Test on a larger dataset
  - Modify parameters to increase prediction accuracy
- - Change dependent variable 
+ - Change dependent variable
+ - Use glob module to read through files in multiple folders
 
 If you have any questions or comments feel free to reach out to me at dfolmsbee@gmail.com
