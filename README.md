@@ -5,8 +5,11 @@ Currenty this consists of two working files where one creates a database using s
 while the other creates a dataframe using pandas. The hope is to come up with a solution that
 effectively organizes the data so that it can be read into a machine learning algorithm. The
 hope for the ML is that we can accomplish it through general scikit-learn methods in hopes
-that it can be used for more general molecular learning applications in the future. Currently
-in the molML-tweaks branch the ML is working but further testing is needed to ensure everything
-is working correctly.
+that it can be used for more general molecular learning applications in the future.
+
+# Future direction:
+ - Test on a larger dataset
+ - Modify parameters to increase prediction accuracy
+ - Change dependent variable 
 
 If you have any questions or comments feel free to reach out to me at dfolmsbee@gmail.com
