@@ -1,7 +1,7 @@
 # MolecularLearning
-This is a repository for the files I am learning to use and edit for research.
+This is a repository for my graduate studies research.
 
-Currently this consists of two working files where one creates a database using sqlite format while the other creates a data frame using pandas that can be easily read from for machine learning. The hope for mol_ml.py is that we can accomplish it through general [scikit-learn](http://scikit-learn.org/stable/) methods so that it can be used for more general molecular learning applications in the future.
+Currently this repository consists of two working files where one creates a database using sqlite format while the other creates a data frame using pandas that can be easily read from for machine learning. The hope for mol_ml.py is that we can accomplish it through general [scikit-learn](http://scikit-learn.org/stable/) methods so that it can be used for more general molecular learning applications in the future.
 
 ### Future direction:
  - Test on a larger dataset
