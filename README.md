@@ -7,7 +7,7 @@ Currently this consists of two working files where one creates a database using 
  - Test on a larger dataset
  - Modify parameters to increase prediction accuracy
  - Change dependent variable
- - Use glob module to read through files in multiple folders
+ - ~~Use glob module to read through files in multiple folders~~
 
 ### Useful files:
  - mol_ml.py (Reads through files and uses Kernel Ridge Regression classifier)
