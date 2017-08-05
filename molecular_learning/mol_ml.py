@@ -23,19 +23,18 @@ def atomType(mol, atomIdx):
 row_list = []
 
 # Read through all the files in the folder of this directory
-for d in glob.iglob("*omegacsd_YAGWOS/*"):
+for directory in glob.iglob("*omegacsd_YAGWOS/*"):
     name = "/".join(d.split('/')[0:2]) # name of the entry
 
-    for f in glob.iglob(d + "/rmsd*.out"):
-        # all the base files
-        conf = f.split('/')[-1] # conformer name/number
+    for file in glob.iglob(directory + "/rmsd*.out"):
+        conf = file.split('/')[-1] # conformer name/number
 
         try:
             # Use this for Python 2.7
             # mol = pybel.readfile('format', argument).next()
             # Use this for Python 3.6
             # readfile(format, filename)
-            mol = next(pybel.readfile('out', f))
+            mol = next(pybel.readfile('out', file))
         except:
             pass
 
