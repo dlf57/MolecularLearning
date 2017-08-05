@@ -24,7 +24,7 @@ row_list = []
 
 # Read through all the files in the folder of this directory
 for directory in glob.iglob("*omegacsd_YAGWOS/*"):
-    name = "/".join(d.split('/')[0:2]) # name of the entry
+    name = "/".join(directory.split('/')[0:2]) # name of the entry
 
     for file in glob.iglob(directory + "/rmsd*.out"):
         conf = file.split('/')[-1] # conformer name/number
