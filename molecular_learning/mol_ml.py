@@ -26,15 +26,15 @@ row_list = []
 for directory in glob.iglob("*omegacsd_YAGWOS/*"):
     name = "/".join(directory.split('/')[0:2]) # name of the entry
 
-    for file in glob.iglob(directory + "/rmsd*.out"):
-        conf = file.split('/')[-1] # conformer name/number
+    for files in glob.iglob(directory + "/rmsd*.out"):
+        conf = files.split('/')[-1] # conformer name/number
 
         try:
             # Use this for Python 2.7
             # mol = pybel.readfile('format', argument).next()
             # Use this for Python 3.6
             # readfile(format, filename)
-            mol = next(pybel.readfile('out', file))
+            mol = next(pybel.readfile('out', files))
         except:
             pass
 
@@ -48,6 +48,7 @@ for directory in glob.iglob("*omegacsd_YAGWOS/*"):
         # for atom in mol.atoms:
         #    print "Atom %d, %8.4f" % (atom.type, atom.partialcharge)
 
+        # iterate through all bonds
         bonds = []
         for bond in ob.OBMolBondIter(mol.OBMol):
             begin = atomType(mol, bond.GetBeginAtomIdx())
@@ -112,14 +113,20 @@ for directory in glob.iglob("*omegacsd_YAGWOS/*"):
                 #                   mol.OBMol.GetTorsion(a, b, c, d)))
                 torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
                 # print(torsions[-1])
-        torsions = np.asarray(torsions, dtype=float)
 
-        bond_difference = len(torsions) - len(bonds)
+        torsion_difference = 500 - len(torsions)
+        torsions = torsions + ([None] * torsion_difference)
+        torsions = np.asarray(torsions, dtype=float)
+        torsions[np.isnan(torsions)] = -99999
+        # print(len(torsions))
+
+        bond_difference = 500 - len(bonds)
         bonds = bonds + ([None] * bond_difference)
         bonds = np.asarray(bonds, dtype=float)
         bonds[np.isnan(bonds)] = -99999
+        # print(len(bonds))
 
-        angle_difference = len(torsions) - len(angles)
+        angle_difference = 500 - len(angles)
         angles = angles + ([None] * angle_difference)
         angles = np.asarray(angles, dtype=float)
         angles[np.isnan(angles)] = -99999
@@ -149,7 +156,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 # print (X_train.shape)
 # print (y_train.shape)
 
-clf = KernelRidge()
+clf = KernelRidge(gamma='rbf')
 clf.fit(X_train, y_train)
 accuracy = clf.score(X_test, y_test)
 print(accuracy)
