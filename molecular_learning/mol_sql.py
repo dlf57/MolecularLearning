@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os
+import glob
 import sqlite3
 import numpy as np
 import pybel
@@ -14,103 +14,111 @@ conn = sqlite3.connect('MolecularData.db')
 cursor = conn.cursor()
 
 def create_table():
-    cursor.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL, Energy REAL)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL)')
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
     return mol.OBMol.GetAtom(atomIdx).GetType()
 
+# Read through all the files in the folder of this directory
+for directory in glob.iglob("*CHG_jobs/*"):
+    name = "/".join(directory.split('/')[0:2])  # name of the entry
 
-# repeat through all the files on the command-line
-# we can change this to use the glob module as well
-#  e.g., find all the files in a set of folders
-for argument in sys.argv[1:]:
-    filename, extension = os.path.splitext(argument)
-    # print #should probably take this out later but for now gives spacing
-    # Include the filename as to know which file is being read
-    name = os.path.basename(argument)
-    # print name
+    for files in glob.iglob(directory + "/rmsd*.mol"):
+        conf = files.split('/')[-1]  # conformer name/number
 
+        try:
+            # Use this for Python 2.7
+            # mol = pybel.readfile('format', argument).next()
+            # Use this for Python 3.6
+            # readfile(format, filename)
+            mol = next(pybel.readfile('mol', files))
+        except:
+            pass
 
-    # read the molecule from the supplied file
-    mol = pybel.readfile(extension[1:], argument).next()
-    #mol = next(pybel.readfile(extension[1:], argument))
-    # DLF used in order to view initial outputs (mostly used in Jupyter for quick looks)
-    # mol = next(pybel.readfile("out", "rmsd28_opt.out"))
+        # In this case I do not include Energy as that is our dependent variable
+        # print mol.energy # in kcal/mol
+        # ideally, we should turn this into an atomization energy
+        # energy = [mol.energy]
 
+        # iterate through all atoms
+        #  .. this is commented out because Bag Of Bonds doesn't use atomic charges
+        # for atom in mol.atoms:
+        #    print "Atom %d, %8.4f" % (atom.type, atom.partialcharge)
 
+        # iterate through all bonds
+        bonds = []
+        for bond in ob.OBMolBondIter(mol.OBMol):
+            begin = atomType(mol, bond.GetBeginAtomIdx())
+            end = atomType(mol, bond.GetEndAtomIdx())
+            if (end < begin):
+                # swap them for lexographic order
+                begin, end = end, begin
+            # bonds.append("Bond %s-%s, %8.4f" %
+            #              (begin, end, bond.GetLength()))
+            bonds.append("%s-%s, %8.4f" % 
+                        (begin[0], end[0], bond.GetLength()))
+            # bonds.append("%8.4f" % (bond.GetLength()))
+            # print(bonds[-1])
+        bond = '; '.join(bonds)
 
-    # In this case I do not include Energy as that is our dependent variable
-    #print mol.energy # in kcal/mol
-    # ideally, we should turn this into an atomization energy
-    energy = mol.energy
+        # iterate through all angles
+        angles = []
+        for angle in ob.OBMolAngleIter(mol.OBMol):
+            a = (angle[0] + 1)
+            b = mol.OBMol.GetAtom(angle[1] + 1)
+            c = (angle[2] + 1)
 
-    # iterate through all atoms
-    #  .. this is commented out because Bag Of Bonds doesn't use atomic charges
-    # for atom in mol.atoms:
-    #    print "Atom %d, %8.4f" % (atom.type, atom.partialcharge)
+            aType = atomType(mol, a)
+            cType = atomType(mol, c)
+            if (cType < aType):
+                # swap them for lexographic order
+                aType, cType = cType, aType
+            # angles.append("Angle %s-%s-%s, %8.3f" %
+            #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
+            angles.append("%s-%s-%s, %8.3f" %
+                        (aType[0], b.GetType()[0], cType[0], b.GetAngle(a, c)))
+            # angles.append("%8.3f" % (b.GetAngle(a, c)))
+            # print(angles[-1])
+        angle = '; '.join(angles)
 
-    # iterate through all bonds
-    bonds = []
-    for bond in ob.OBMolBondIter(mol.OBMol):
-        begin = atomType(mol, bond.GetBeginAtomIdx())
-        end = atomType(mol, bond.GetEndAtomIdx())
-        if (end < begin):
-            # swap them for lexographic order
-            begin, end = end, begin
-        bonds.append("Bond %s-%s, %8.4f" % (begin, end, bond.GetLength()) )
-        #print bonds[-1]
-    # Would representing the data as an array make it easier to manipulate?
-    # Bonds = np.asarray([bonds], dtype=object)
-    bond = '; '.join(bonds)
-    # print bond
+        # iterate through all torsions
+        torsions = []
+        for torsion in ob.OBMolTorsionIter(mol.OBMol):
+            a = (torsion[0] + 1)
+            b = (torsion[1] + 1)
+            c = (torsion[2] + 1)
+            d = (torsion[3] + 1)
 
-    # iterate through all angles
-    angles = []
-    for angle in ob.OBMolAngleIter(mol.OBMol):
-        a = (angle[0] + 1)
-        b = mol.OBMol.GetAtom(angle[1] + 1)
-        c = (angle[2] + 1)
+            aType = atomType(mol, a)
+            bType = atomType(mol, b)
+            cType = atomType(mol, c)
+            dType = atomType(mol, d)
 
-        aType = atomType(mol, a)
-        cType = atomType(mol, c)
-        if (cType < aType):
-            # swap them for lexographic order
-            aType, cType = cType, aType
-        angles.append( "Angle %s-%s-%s, %8.3f" % (aType, b.GetType(), cType, b.GetAngle(a, c)) )
-        #print angles[-1]
-    #Angles = np.asarray([angles], dtype=object)
-    angle = '; '.join(angles)
-    # print angle
+            # output in lexographic order
+            if (aType < dType):
+                # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
+                #                  (aType, bType, cType, dType,
+                #                   mol.OBMol.GetTorsion(a, b, c, d)) )
+                torsions.append( "%s-%s-%s-%s, %8.3f" %
+                                (aType[0], bType[0], cType[0], dType[0],
+                                mol.OBMol.GetTorsion(a, b, c, d)))
+                # torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
+            else:
+                # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
+                #                  (dType, cType, bType, aType,
+                #                   mol.OBMol.GetTorsion(a, b, c, d)))
+                torsions.append( "%s-%s-%s-%s, %8.3f" %
+                                (dType[0], cType[0], bType[0], aType[0],
+                                mol.OBMol.GetTorsion(a, b, c, d)))
+                # torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
+                # print(torsions[-1])
+        torsion = '; '.join(torsions)
 
-    # iterate through all torsions
-    torsions = []
-    for torsion in ob.OBMolTorsionIter(mol.OBMol):
-        a = (torsion[0] + 1)
-        b = (torsion[1] + 1)
-        c = (torsion[2] + 1)
-        d = (torsion[3] + 1)
-
-        aType = atomType(mol, a)
-        bType = atomType(mol, b)
-        cType = atomType(mol, c)
-        dType = atomType(mol, d)
-
-        # output in lexographic order
-        if (aType < dType):
-            torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (aType, bType, cType, dType, mol.OBMol.GetTorsion(a, b, c, d)) )
-        else:
-            torsions.append( "Torsion %s-%s-%s-%s, %8.3f" % (dType, cType, bType, aType, mol.OBMol.GetTorsion(a, b, c, d)) )
-            #print torsions[-1]
-    #Torsions = np.asarray([torsions], dtype=object)
-    torsion = '; '.join(torsions)
-    # print torsion
-
-
-    cursor.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions, Energy) VALUES (?, ?, ?, ?, ?)",
-              (name, bond, angle, torsion, energy))
-    conn.commit()
-    #
+        cursor.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions) VALUES (?, ?, ?, ?)",
+                    (name, bond, angle, torsion))
+        conn.commit()
+    
     # data = c.fetchall()
     # print data
 
