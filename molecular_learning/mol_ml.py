@@ -24,10 +24,10 @@ row_list = []
 
 # Read through all the files in the folder of this directory
 for directory in glob.iglob("*omegacsd_YAGWOS/*"):
-    name = "/".join(directory.split('/')[0:2]) # name of the entry
+    name = "/".join(directory.split('/')[0:2])  # name of the entry
 
     for files in glob.iglob(directory + "/rmsd*.out"):
-        conf = files.split('/')[-1] # conformer name/number
+        conf = files.split('/')[-1]  # conformer name/number
 
         try:
             # Use this for Python 2.7
@@ -115,16 +115,15 @@ for directory in glob.iglob("*omegacsd_YAGWOS/*"):
                 # print(torsions[-1])
 
         torsion_difference = 500 - len(torsions)
+        # ideally should raise exception if len > 500
         torsions = torsions + ([None] * torsion_difference)
         torsions = np.asarray(torsions, dtype=float)
         torsions[np.isnan(torsions)] = -99999
-        # print(len(torsions))
 
         bond_difference = 500 - len(bonds)
         bonds = bonds + ([None] * bond_difference)
         bonds = np.asarray(bonds, dtype=float)
         bonds[np.isnan(bonds)] = -99999
-        # print(len(bonds))
 
         angle_difference = 500 - len(angles)
         angles = angles + ([None] * angle_difference)
@@ -171,9 +170,9 @@ print(df_compare)
 
 # plotting the actual vs. the predicted to get a visual representation
 plt.figure(figsize=(8, 6))
-plt.scatter(y_test, predicted)
+plt.scatter(predicted, y_test)
 plt.title('Comparison of Energies (Kcal/mol)', fontsize=16)
-plt.xlabel('Actual', fontsize=12)
-plt.ylabel('Predicted', fontsize=12)
+plt.xlabel('Predicted', fontsize=12)
+plt.ylabel('Actual', fontsize=12)
 plt.grid(True)
 plt.show()
