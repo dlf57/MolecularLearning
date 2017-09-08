@@ -13,16 +13,20 @@ ob = pybel.ob
 conn = sqlite3.connect('MolecularData.db')
 cursor = conn.cursor()
 
+
 def create_table():
-    cursor.execute('CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Bonds REAL, Angles REAL, Torsions REAL)')
+    cursor.execute(
+        'CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Conformer TEXT, Bonds REAL, Angles REAL, Torsions REAL)')
+
 
 def atomType(mol, atomIdx):
     # get the atomic type given an atom index
     return mol.OBMol.GetAtom(atomIdx).GetType()
 
+
 # Read through all the files in the folder of this directory
-for directory in glob.iglob("*CHG_jobs/*"):
-    name = "/".join(directory.split('/')[0:2])  # name of the entry
+for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*"):
+    name = "/".join(directory.split('/')[6:10])  # name of the entry
 
     for files in glob.iglob(directory + "/rmsd*.mol"):
         conf = files.split('/')[-1]  # conformer name/number
@@ -56,8 +60,8 @@ for directory in glob.iglob("*CHG_jobs/*"):
                 begin, end = end, begin
             # bonds.append("Bond %s-%s, %8.4f" %
             #              (begin, end, bond.GetLength()))
-            bonds.append("%s-%s, %8.4f" % 
-                        (begin[0], end[0], bond.GetLength()))
+            bonds.append("%s-%s, %8.4f" %
+                         (begin[0], end[0], bond.GetLength()))
             # bonds.append("%8.4f" % (bond.GetLength()))
             # print(bonds[-1])
         bond = '; '.join(bonds)
@@ -77,7 +81,7 @@ for directory in glob.iglob("*CHG_jobs/*"):
             # angles.append("Angle %s-%s-%s, %8.3f" %
             #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
             angles.append("%s-%s-%s, %8.3f" %
-                        (aType[0], b.GetType()[0], cType[0], b.GetAngle(a, c)))
+                          (aType[0], b.GetType()[0], cType[0], b.GetAngle(a, c)))
             # angles.append("%8.3f" % (b.GetAngle(a, c)))
             # print(angles[-1])
         angle = '; '.join(angles)
@@ -100,25 +104,25 @@ for directory in glob.iglob("*CHG_jobs/*"):
                 # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
                 #                  (aType, bType, cType, dType,
                 #                   mol.OBMol.GetTorsion(a, b, c, d)) )
-                torsions.append( "%s-%s-%s-%s, %8.3f" %
+                torsions.append("%s-%s-%s-%s, %8.3f" %
                                 (aType[0], bType[0], cType[0], dType[0],
-                                mol.OBMol.GetTorsion(a, b, c, d)))
+                                 mol.OBMol.GetTorsion(a, b, c, d)))
                 # torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
             else:
                 # torsions.append( "Torsion %s-%s-%s-%s, %8.3f" %
                 #                  (dType, cType, bType, aType,
                 #                   mol.OBMol.GetTorsion(a, b, c, d)))
-                torsions.append( "%s-%s-%s-%s, %8.3f" %
+                torsions.append("%s-%s-%s-%s, %8.3f" %
                                 (dType[0], cType[0], bType[0], aType[0],
-                                mol.OBMol.GetTorsion(a, b, c, d)))
+                                 mol.OBMol.GetTorsion(a, b, c, d)))
                 # torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
                 # print(torsions[-1])
         torsion = '; '.join(torsions)
 
-        cursor.execute("INSERT INTO MoleculeData (Name, Bonds, Angles, Torsions) VALUES (?, ?, ?, ?)",
-                    (name, bond, angle, torsion))
+        cursor.execute("INSERT INTO MoleculeData (Name, Conformer, Bonds, Angles, Torsions) VALUES (?, ?, ?, ?, ?)",
+                       (name, conf, bond, angle, torsion))
         conn.commit()
-    
+
     # data = c.fetchall()
     # print data
 
