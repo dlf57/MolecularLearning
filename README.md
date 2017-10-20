@@ -1,18 +1,15 @@
 # MolecularLearning
 This is a repository for my graduate studies research.
 
-Currently this repository consists of two working files where one creates a database using sqlite format while the other creates a data frame using pandas that can be easily read from for machine learning. The hope for mol_ml.py is that we can accomplish it through general [scikit-learn](http://scikit-learn.org/stable/) methods so that it can be used for more general molecular learning applications in the future.
+Currently this repository consists of two working files. The file mol_sql.py can be used to create a database using sqlite format. The file mol_ml.py reads in the molecular information, sorts, and runs a machine learning algorithm in order to predict the desired properties. mol_ml.py uses [scikit-learn](http://scikit-learn.org/stable/) library for regressors and classifiers used in machine learning. 
 
 ### Future direction:
- - Test on a larger dataset
- - Modify parameters to increase prediction accuracy
- - Change dependent variable
- - ~~Use glob module to read through files in multiple folders~~
+ - Test on a larger dataset (currently ~700 molecules and ~23,000 conformers have been tested)
+ - Modify parameters to increase prediction accuracy 
+ - Increase level of theory the ML is trained on
 
-### Useful files:
- - mol_ml.py (Reads through files and uses Kernel Ridge Regression classifier)
+### Files in this Repository:
+ - mol_ml.py (Reads through files and uses Bayesian Ridge Regression)
  - mol_sql.py (Reads through files and stores in sqlite database)
- - ~~ML.py~~
- - ~~AtomizationE.py~~
 
-If you have any questions or comments feel free to reach out to me at *dfolmsbee@gmail.com* or *dlf57@pitt.edu*.
+If you have any questions or comments please reach out to me at *dfolmsbee@gmail.com* or *dlf57@pitt.edu*.
