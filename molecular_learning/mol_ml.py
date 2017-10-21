@@ -16,7 +16,7 @@ from matplotlib import style
 ob = pybel.ob
 
 # syntax:
-# mol_ml.py
+# molml.py
 
 # organization of all paths for the code
 csv_file = '/Users/dakota/Documents/Research/data-all_ordered.csv'
@@ -26,7 +26,7 @@ jobs_file = "/rmsd*.mol"
 jobs_file_format = "mol"
 figure_path = '/Users/dakota/Documents/Research/data/Figures/'
 figure_name = 'figure_name.png'
-
+save_figure = figure_path + figure_name
 
 # import the energy values
 df_csv = pd.read_csv(csv_file)
@@ -42,8 +42,37 @@ def atomType(mol, atomIdx):
 
 
 # Atom encoding
-molec_encoding = {'B': 1, 'C': 2, 'F': 3, 'I': 4,
-                  'N': 5, 'O': 6, 'P': 7, 'S': 8, 'H': 9}
+def encoding(atom):
+    molec_encoding = {'B': '01', 'C': '02', 'F': '03',
+                      'I': '04', 'N': '05', 'O': '06',
+                      'P': '07', 'S': '09', 'H': '10',
+                      'Cl': '11', 'Br': '12'}
+    hybrid_encoding = {'1': '1', '2': '2', 'a': '2', '3': '3', '+': '4'}
+    for atom_type in atom:
+        atom_type = atom[0:2]
+        if atom_type == (atom_type[0] + '1'):
+            atom_e = (str(molec_encoding[atom[0]]) +
+                      str(hybrid_encoding[atom[1]]))
+        elif atom_type == (atom_type[0] + '2'):
+            atom_e = (str(molec_encoding[atom[0]]) +
+                      str(hybrid_encoding[atom[1]]))
+        elif atom_type == (atom_type[0] + 'a'):
+            atom_e = (str(molec_encoding[atom[0]]) +
+                      str(hybrid_encoding[atom[1]]))
+        elif atom_type == (atom_type[0] + '3'):
+            atom_e = (str(molec_encoding[atom[0]]) +
+                      str(hybrid_encoding[atom[1]]))
+        elif atom_type == (atom_type[0] + '+'):
+            atom_e = (str(molec_encoding[atom[0]]) +
+                      str(hybrid_encoding[atom[1]]))
+        elif atom_type == (atom_type[0] + 'l'):
+            atom_e = str(molec_encoding[atom[0:2]]) + '0'
+        elif atom_type == (atom_type[0] + 'r'):
+            atom_e = str(molec_encoding[atom[0:2]]) + '0'
+        else:
+            atom_e = str(molec_encoding[atom[0]]) + '0'
+    return atom_e
+
 
 # Indexing for dataframes to ensure same length
 index = list(range(1, 501))
@@ -82,14 +111,15 @@ for directory in glob.iglob(jobs_directory):
 
                 bonds = []
                 for bond in ob.OBMolBondIter(mol.OBMol):
-                    begin = atomType(mol, bond.GetBeginAtomIdx())[0]
-                    end = atomType(mol, bond.GetEndAtomIdx())[0]
-                    if (molec_encoding[end] < molec_encoding[begin]):
+                    begin = atomType(mol, bond.GetBeginAtomIdx())
+                    end = atomType(mol, bond.GetEndAtomIdx())
+
+                    if (end < begin):
                         # swap them for lexographic order
                         begin, end = end, begin
+
                     dict2 = {}
-                    bond_type = (
-                        (str(molec_encoding[begin]) + str(molec_encoding[end])))
+                    bond_type = encoding(begin) + encoding(end)
                     bond_length = ("%8.4f" % (bond.GetLength()))
                     dict2.update({'Bond_Type': bond_type})
                     dict2.update({'Bond_Length': bond_length})
@@ -108,13 +138,13 @@ for directory in glob.iglob(jobs_directory):
 
                     aType = atomType(mol, a)
                     cType = atomType(mol, c)
-                    if (molec_encoding[cType[0]] < molec_encoding[aType[0]]):
+                    if (cType < aType):
                         # swap them for lexographic order
                         aType, cType = cType, aType
 
                     dict3 = {}
-                    angle_type = (str(molec_encoding[aType[0]]) + str(molec_encoding[b.GetType()[0]])
-                                  + str(molec_encoding[cType[0]]))
+                    angle_type = (encoding(aType) + encoding(b.GetType())
+                                  + encoding(cType))
                     angle_angle = ("%8.3f" % (b.GetAngle(a, c)))
                     dict3.update({'Angle_Type': angle_type})
                     dict3.update({'Angle': angle_angle})
@@ -139,20 +169,19 @@ for directory in glob.iglob(jobs_directory):
 
                     dict4 = {}
                     # output in lexographic order
-                    if (molec_encoding[aType[0]] < molec_encoding[dType[0]]):
-                        torsion_type = (str(molec_encoding[aType[0]]) + str(molec_encoding[bType[0]])
-                                        + str(molec_encoding[cType[0]]) + str(molec_encoding[dType[0]]))
+                    if (aType < dType):
+                        torsion_type = (encoding(aType) + encoding(bType)
+                                        + encoding(cType) + encoding(dType))
                         torsion_angle = ("%8.3f" %
                                          ((mol.OBMol.GetTorsion(a, b, c, d))))
                         dict4.update({'Torsion_Type': torsion_type})
                         dict4.update({'Torsion': torsion_angle})
                         torsions.append(dict4)
                     else:
-                        torsion_type = (str(molec_encoding[dType[0]]) + str(molec_encoding[cType[0]])
-                                        + str(molec_encoding[bType[0]]) + str(molec_encoding[aType[0]]))
+                        torsion_type = (encoding(dType) + encoding(cType)
+                                        + encoding(bType) + encoding(aType))
                         torsion_angle = ("%8.3f" %
                                          ((mol.OBMol.GetTorsion(a, b, c, d))))
-                        torsion_angle = float(torsion_angle)
                         dict4.update({'Torsion_Type': torsion_type})
                         dict4.update({'Torsion': torsion_angle})
                         torsions.append(dict4)
@@ -221,7 +250,6 @@ df_pm7E = pd.DataFrame(pm7, columns=['Name', 'Conformer', 'pm7E'])
 pm7_info = np.asarray(list(df_pm7E['pm7E']))
 # print(pm7_info.shape) # if array size errors print to see shape
 
-
 # make the molecular descriptor that will be used as the input
 molecule = np.concatenate((bondstuff, bondlen, anglestuff,
                            anglelen, torsionstuff, torsionlen, pm7_info), axis=1)
@@ -233,7 +261,7 @@ X_train, X_test, y_train, y_test = train_test_split(molecule, y, test_size=0.2)
 # print(y_train.shape) # if array size errors print to see shape
 
 # specify regressor and run
-clf = BayesianRidge()  # change to KernelRidge or SVR if need to
+clf = BayesianRidge()
 clf.fit(X_train, y_train)
 accuracy = clf.score(X_test, y_test)
 r2 = ("%8.3f" % accuracy)
@@ -256,6 +284,6 @@ plt.title('Comparison of DFT Energies', fontsize=16)
 plt.xlabel('Predicted', fontsize=12)
 plt.ylabel('Actual', fontsize=12)
 plt.grid(False)
-plt.savefig(figure_path + figure_name)
+plt.savefig(save_figure)
 plt.show()
 plt.close
