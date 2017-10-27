@@ -16,7 +16,7 @@ cursor = conn.cursor()
 
 def create_table():
     cursor.execute(
-        'CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Conformer TEXT, Bonds REAL, Angles REAL, Torsions REAL)')
+        'CREATE TABLE IF NOT EXISTS MoleculeData (Name TEXT, Conformer TEXT, Bonds REAL, Angles REAL, Torsions REAL, NonBonding REAL)')
 
 
 def atomType(mol, atomIdx):
@@ -61,7 +61,7 @@ for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*
             # bonds.append("Bond %s-%s, %8.4f" %
             #              (begin, end, bond.GetLength()))
             bonds.append("%s-%s, %8.4f" %
-                         (begin[0], end[0], bond.GetLength()))
+                         (begin, end, bond.GetLength()))
             # bonds.append("%8.4f" % (bond.GetLength()))
             # print(bonds[-1])
         bond = '; '.join(bonds)
@@ -81,7 +81,7 @@ for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*
             # angles.append("Angle %s-%s-%s, %8.3f" %
             #                (aType, b.GetType(), cType, b.GetAngle(a, c)))
             angles.append("%s-%s-%s, %8.3f" %
-                          (aType[0], b.GetType()[0], cType[0], b.GetAngle(a, c)))
+                          (aType, b.GetType(), cType, b.GetAngle(a, c)))
             # angles.append("%8.3f" % (b.GetAngle(a, c)))
             # print(angles[-1])
         angle = '; '.join(angles)
@@ -105,7 +105,7 @@ for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*
                 #                  (aType, bType, cType, dType,
                 #                   mol.OBMol.GetTorsion(a, b, c, d)) )
                 torsions.append("%s-%s-%s-%s, %8.3f" %
-                                (aType[0], bType[0], cType[0], dType[0],
+                                (aType, bType, cType, dType,
                                  mol.OBMol.GetTorsion(a, b, c, d)))
                 # torsions.append("%8.3f" % (mol.OBMol.GetTorsion(a, b, c, d)))
             else:
@@ -119,8 +119,25 @@ for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*
                 # print(torsions[-1])
         torsion = '; '.join(torsions)
 
-        cursor.execute("INSERT INTO MoleculeData (Name, Conformer, Bonds, Angles, Torsions) VALUES (?, ?, ?, ?, ?)",
-                       (name, conf, bond, angle, torsion))
+        # iterate through all non-bonding atoms
+        nb = []
+        for pair in ob.OBMolPairIter(mol.OBMol):
+            (first, second) = pair
+            begin_nb = atomType(mol, first)
+            end_nb = atomType(mol, second)
+            if (end_nb < begin_nb):
+                # Swap for lexographic order
+                begin_nb, end_nb = end_nb, begin_nb
+
+            dist = mol.OBMol.GetAtom(first).GetDistance(second)
+            nb.append("%s-%s, %8.4f" % (begin_nb, end_nb, dist))\
+                # print(nb[-1])
+        nonbond = '; '.join(nb)
+
+        # iterate through all non-bonding
+
+        cursor.execute("INSERT INTO MoleculeData (Name, Conformer, Bonds, Angles, Torsions, NonBonding) VALUES (?, ?, ?, ?, ?, ?)",
+                       (name, conf, bond, angle, torsion, nonbond))
         conn.commit()
 
     # data = c.fetchall()
