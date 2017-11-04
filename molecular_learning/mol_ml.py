@@ -75,7 +75,10 @@ def encoding(atom):
 
 
 # Indexing for dataframes to ensure same length
-index = list(range(1, 501))
+bond_index = list(range(1, 101))
+angle_index = list(range(1, 201))
+torsion_index = list(range(1, 301))
+nonbond_index = list(range(1, 501))
 
 row_list = []
 # Read through all the files in the folder of this directory
@@ -127,7 +130,13 @@ for directory in glob.iglob(jobs_directory):
 
                 dfb = pd.DataFrame(
                     bonds, columns=['Bond_Type', 'Bond_Length'], dtype=float)
-                dfb = dfb.reindex(index, fill_value=-99999)
+
+                # check to see if length does not exceed index
+                if (len(dfb) > 100):
+                    raise Exception("More than 100 bonds. Change bond_index.")
+
+                # fix index
+                dfb = dfb.reindex(bond_index, fill_value=-9999999)
 
                 # iterate through all angles
                 angles = []
@@ -152,7 +161,14 @@ for directory in glob.iglob(jobs_directory):
 
                 dfa = pd.DataFrame(
                     angles, columns=['Angle_Type', 'Angle'], dtype=float)
-                dfa = dfa.reindex(index, fill_value=-99999)
+
+                # check to see if length does not exceed index
+                if (len(dfa) > 200):
+                    raise Exception(
+                        "More than 200 angles. Change angle_index.")
+
+                # fix index
+                dfa = dfa.reindex(angle_index, fill_value=-9999999)
 
                 # iterate through all torsions
                 torsions = []
@@ -188,7 +204,14 @@ for directory in glob.iglob(jobs_directory):
 
                 dftor = pd.DataFrame(torsions, columns=[
                                      'Torsion_Type', 'Torsion'], dtype=float)
-                dftor = dftor.reindex(index, fill_value=-99999)
+
+                # check to see if length does not exceed index
+                if (len(dftor) > 300):
+                    raise Exception(
+                        "More than 300 torsions. Change torsion_index.")
+
+                # fix index
+                dftor = dftor.reindex(torsion_index, fill_value=-9999999)
 
                 # store the descriptors for the molecules in a dictionary
                 dict1 = {}
