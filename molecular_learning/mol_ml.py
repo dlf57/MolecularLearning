@@ -78,7 +78,7 @@ def encoding(atom):
 bond_index = list(range(1, 101))
 angle_index = list(range(1, 201))
 torsion_index = list(range(1, 301))
-nonbond_index = list(range(1, 501))
+nonbond_index = list(range(1, 2001))
 
 row_list = []
 # Read through all the files in the folder of this directory
@@ -213,6 +213,27 @@ for directory in glob.iglob(jobs_directory):
                 # fix index
                 dftor = dftor.reindex(torsion_index, fill_value=-9999999)
 
+                                # iterate through all non-bonded
+                nb = []
+                for pair in ob.OBMolPairIter(mol.OBMol):
+                    (first, second) = pair
+                    begin_nb = atomType(mol, first)
+                    end_nb = atomType(mol, second)
+                    dist = mol.OBMol.GetAtom(first).GetDistance(second)
+                    if (end_nb[0] < begin_nb[0]):
+                        # swap them for lexographic order
+                        begin_nb, end_nb = end_nb, begin_nb
+
+                    dict5 = {}
+                    nonbond_type = encoding(begin_nb) + encoding(end_nb)
+                    nonbond_distance = ("%8.4f" % (dist))
+                    dict5.update({'NB_Type': nonbond_type})
+                    dict5.update({'NB_Distance': nonbond_distance})
+                    nb.append(dict5)
+
+                dfnb = pd.DataFrame(nb, columns=['NB_Type', 'NB_Distance'], dtype=float)
+                dfnb = dfnb.reindex(nonbond_index, fill_value=-9999999)
+
                 # store the descriptors for the molecules in a dictionary
                 dict1 = {}
                 dict1.update({'Bond_Type': dfb['Bond_Type']})
@@ -221,6 +242,8 @@ for directory in glob.iglob(jobs_directory):
                 dict1.update({'Angle': dfa['Angle']})
                 dict1.update({'Torsion_Type': dftor['Torsion_Type']})
                 dict1.update({'Torsion': dftor['Torsion']})
+                dict1.update({'NB_Type': dfnb['NB_Type']})
+                dict1.update({'NB_Distance': dfnb['NB_Distance']})
                 dict1.update({'Name': name})
                 dict1.update({'Conformer': conf})
                 dict1.update({'Optimization': opt})
@@ -232,9 +255,11 @@ for directory in glob.iglob(jobs_directory):
 
 
 # make a dataframe of all the molecules, their descriptors and energies
-df = pd.DataFrame(row_list, columns=[
-                  'Name', 'Conformer', 'Optimization', 'Bond_Type', 'Bond_Length', 'Angle_Type', 'Angle',
-                  'Torsion_Type', 'Torsion'])
+df = pd.DataFrame(row_list, columns=['Name', 'Conformer', 'Optimization',
+                                     'Bond_Type', 'Bond_Length',
+                                     'Angle_Type', 'Angle',
+                                     'Torsion_Type', 'Torsion',
+                                     'NB_Type', 'NB_Distance'])
 
 # sort the dataframe to match with the csv
 df.sort_values(by=['Conformer', 'Name'], ascending=[True, True], inplace=True)
@@ -250,7 +275,8 @@ anglestuff = np.asarray(list(df['Angle_Type']))
 anglelen = np.asarray(list(df['Angle']))
 torsionstuff = np.asarray(list(df['Torsion_Type']))
 torsionlen = np.asarray(list(df['Torsion']))
-# print(bondstuff.shape) # if array size errors print to see shape
+nbstuff = np.asarray(list(df['NB_Type']))
+nblen = np.asarray(list(df['NB_Distance']))
 
 # extract pm7 information from the csv and store in array
 pm7 = []
@@ -260,7 +286,7 @@ for x in range(0, 23911):
     pm7E = df_csv['pm7E'].iloc[x]
     pm7E = float(pm7E)
     pm7_value = np.asarray([pm7E])
-    fix_len = ([-9999] * 499)
+    fix_len = ([-9999999] * 1)
     fix_len = np.asarray(fix_len)
     pm7_value = np.append(pm7_value, fix_len, axis=0)
     dict7 = {}
@@ -275,7 +301,8 @@ pm7_info = np.asarray(list(df_pm7E['pm7E']))
 
 # make the molecular descriptor that will be used as the input
 molecule = np.concatenate((bondstuff, bondlen, anglestuff,
-                           anglelen, torsionstuff, torsionlen, pm7_info), axis=1)
+                           anglelen, torsionstuff, torsionlen,
+                           nbstuff, nblen, pm7_info), axis=1)
 # print(molecule.shape) # if array size errors print to see shape
 
 # test, train, split for data
