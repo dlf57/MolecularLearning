@@ -130,8 +130,8 @@ for directory in glob.iglob("/Users/dakota/Documents/Research/conformers/*jobs/*
                 begin_nb, end_nb = end_nb, begin_nb
 
             dist = mol.OBMol.GetAtom(first).GetDistance(second)
-            nb.append("%s-%s, %8.4f" % (begin_nb, end_nb, dist))\
-                # print(nb[-1])
+            nb.append("%s-%s, %8.4f" % (begin_nb, end_nb, dist))
+            # print(nb[-1])
         nonbond = '; '.join(nb)
 
         # iterate through all non-bonding
