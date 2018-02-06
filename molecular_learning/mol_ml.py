@@ -42,11 +42,6 @@ def atomType(mol, atomIdx):
     return mol.OBMol.GetAtom(atomIdx).GetType()
 
 
-def atomType(mol, atomIdx):
-    # get the atomic type given an atom index
-    return mol.OBMol.GetAtom(atomIdx).GetType()
-
-
 def encoding(atom):
     '''Atom encoding
     Each atom encoding is represented by a string of numbers
