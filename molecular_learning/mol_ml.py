@@ -28,12 +28,13 @@ figure_path = '/Users/dakota/Documents/Research/data/Figures/'
 figure_name = 'figure_name.png'
 save_figure = figure_path + figure_name
 
-# import the energy values
+# Import the energy values
 df_csv = pd.read_csv(csv_file)
 df_csv.columns = csv_file_columns
 df_csv = df_csv.replace('nan', np.nan, regex=True)
+# If there is not a dftE than it is dropped so that
+# . there are no errors of nan when training
 df_csv = df_csv.dropna(axis=0, how='any')
-path_csv = df_csv['Name'] + df_csv['Conformer']
 
 
 def atomType(mol, atomIdx):
@@ -41,44 +42,67 @@ def atomType(mol, atomIdx):
     return mol.OBMol.GetAtom(atomIdx).GetType()
 
 
-# Atom encoding
+def atomType(mol, atomIdx):
+    # get the atomic type given an atom index
+    return mol.OBMol.GetAtom(atomIdx).GetType()
+
+
 def encoding(atom):
-    molec_encoding = {'B': '01', 'C': '02', 'F': '03',
-                      'I': '04', 'N': '05', 'O': '06',
-                      'P': '07', 'S': '09', 'H': '10',
-                      'Cl': '11', 'Br': '12'}
-    hybrid_encoding = {'1': '1', '2': '2', 'a': '2', '3': '3', '+': '4'}
+    '''Atom encoding
+    Each atom encoding is represented by a string of numbers
+    consisting of an element encoding and a hybrid encoding.
+
+    Element encoding is done based off of the periodic table
+    where the element that will be encoded is encoded to the
+    corresponding element number on the periodic table.
+
+    Type encoding is done based off of the type of atom it is.
+     _________________________
+    | Element (XX) | Type (X) |
+
+    Ex.
+     ____________       ________
+    | Carbon | 3 | --> | 06 | 3 | --> 063
+
+    '''
+    element_encoding = {'B': '05', 'C': '06', 'F': '09',
+                        'I': '53', 'N': '07', 'O': '08',
+                        'P': '15', 'S': '16', 'H': '01',
+                        'Cl': '17', 'Br': '35'}
+    type_encoding = {'1': '1', '2': '2', 'a': '2', '3': '3', '+': '4'}
     for atom_type in atom:
         atom_type = atom[0:2]
         if atom_type == (atom_type[0] + '1'):
-            atom_e = (str(molec_encoding[atom[0]]) +
-                      str(hybrid_encoding[atom[1]]))
+            atom_encoding = (str(element_encoding[atom[0]]) +
+                             str(type_encoding[atom[1]]))
         elif atom_type == (atom_type[0] + '2'):
-            atom_e = (str(molec_encoding[atom[0]]) +
-                      str(hybrid_encoding[atom[1]]))
+            atom_encoding = (str(element_encoding[atom[0]]) +
+                             str(type_encoding[atom[1]]))
         elif atom_type == (atom_type[0] + 'a'):
-            atom_e = (str(molec_encoding[atom[0]]) +
-                      str(hybrid_encoding[atom[1]]))
+            atom_encoding = (str(element_encoding[atom[0]]) +
+                             str(type_encoding[atom[1]]))
         elif atom_type == (atom_type[0] + '3'):
-            atom_e = (str(molec_encoding[atom[0]]) +
-                      str(hybrid_encoding[atom[1]]))
+            atom_encoding = (str(element_encoding[atom[0]]) +
+                             str(type_encoding[atom[1]]))
         elif atom_type == (atom_type[0] + '+'):
-            atom_e = (str(molec_encoding[atom[0]]) +
-                      str(hybrid_encoding[atom[1]]))
+            atom_encoding = (str(element_encoding[atom[0]]) +
+                             str(type_encoding[atom[1]]))
         elif atom_type == (atom_type[0] + 'l'):
-            atom_e = str(molec_encoding[atom[0:2]]) + '0'
+            atom_encoding = str(element_encoding[atom[0:2]]) + '0'
         elif atom_type == (atom_type[0] + 'r'):
-            atom_e = str(molec_encoding[atom[0:2]]) + '0'
+            atom_encoding = str(element_encoding[atom[0:2]]) + '0'
         else:
-            atom_e = str(molec_encoding[atom[0]]) + '0'
-    return atom_e
+            atom_encoding = str(element_encoding[atom[0]]) + '0'
+    return atom_encoding
 
 
-# Indexing for dataframes to ensure same length
-bond_index = list(range(1, 101))
-angle_index = list(range(1, 201))
-torsion_index = list(range(1, 301))
-nonbond_index = list(range(1, 2001))
+# Pad lists to ensure same length
+bond_len = 200
+angle_len = 400
+torsion_len = 600
+nb_len = 7500
+pm7_len = 2
+fill_val = -99999
 
 row_list = []
 # Read through all the files in the folder of this directory
@@ -87,226 +111,180 @@ for directory in glob.iglob(jobs_directory):
 
     for files in glob.iglob(directory + jobs_file):
         conformer = files.split('/')[-1]  # conformer name/number
-        opt_type = files.split('-')[-1]
-        conf = conformer.split('.')[0]
-        opt = opt_type.split('.')[0]
-        path = name + ' ' + conf
-        for value in path_csv.isin([path]):
-            if value == True:
-                try:
-                    # Use this for Python 2.7
-                    # mol = pybel.readfile('format', argument).next()
-                    # Use this for Python 3.6
-                    # readfile(format, filename)
-                    mol = next(pybel.readfile(jobs_file_format, files))
-                except:
-                    pass
+        conf = conformer.split('.')[0]  # this splits off conformer name
+        name = str(name)
+        conf = str(' ' + conf)
 
-                # In this case I do not include Energy as that is our dependent variable
-                # print mol.energy # in kcal/mol
-                # ideally, we should turn this into an atomization energy
-                # energy = [mol.energy]
+        # Use this for Python 2.7
+        # mol = pybel.readfile('format', argument).next()
+        # Use this for Python 3.6
+        mol = next(pybel.readfile(jobs_file_format, files))
 
-                # iterate through all atoms
-                #  .. this is commented out because Bag Of Bonds doesn't use atomic charges
-                # for atom in mol.atoms:
-                #    print "Atom %d, %8.4f" % (atom.type, atom.partialcharge)
+        # iterate through all atoms
+        #  .. this is commented out because Bag Of Bonds doesn't use atomic charges
+        # for atom in mol.atoms:
+        #    print "Atom %d, %8.4f" % (atom.type, atom.partialcharge)
 
-                bonds = []
-                for bond in ob.OBMolBondIter(mol.OBMol):
-                    begin = atomType(mol, bond.GetBeginAtomIdx())
-                    end = atomType(mol, bond.GetEndAtomIdx())
+        # Running this try to ensure files and csv line up
+        # . If the molecule file does not exist in the csv
+        # . then it is skipped for reading in
+        try:
+            # pull energy out of csv
+            energy = (df_csv[(df_csv['Name'] == name)
+                             & (df_csv['Conformer'] == conf)].dftE.item())
 
-                    if (end < begin):
-                        # swap them for lexographic order
-                        begin, end = end, begin
+            # pull pm7E info out of csv
+            pm7e = (df_csv[(df_csv['Name'] == name)
+                           & (df_csv['Conformer'] == conf)].pm7E.item())
+            pm7e = [pm7e]
+            pm7e.extend([fill_val])
 
-                    dict2 = {}
-                    bond_type = encoding(begin) + encoding(end)
-                    bond_length = ("%8.4f" % (bond.GetLength()))
-                    dict2.update({'Bond_Type': bond_type})
-                    dict2.update({'Bond_Length': bond_length})
-                    bonds.append(dict2)
+            # iterate through all bonds
+            bonds = []
+            for bond in ob.OBMolBondIter(mol.OBMol):
+                begin = atomType(mol, bond.GetBeginAtomIdx())
+                end = atomType(mol, bond.GetEndAtomIdx())
 
-                dfb = pd.DataFrame(
-                    bonds, columns=['Bond_Type', 'Bond_Length'], dtype=float)
+                if (end < begin):
+                    # swap them for lexographic order
+                    begin, end = end, begin
 
-                # check to see if length does not exceed index
-                if (len(dfb) > 100):
-                    raise Exception("More than 100 bonds. Change bond_index.")
+                bond_type = encoding(begin) + encoding(end)
+                bond_length = ("%8.4f" % (bond.GetLength()))
+                bonds.append(float(bond_type))
+                bonds.append(float(bond_length))
 
-                # fix index
-                dfb = dfb.reindex(bond_index, fill_value=-9999999)
+            # check to see if length does not exceed index
+            if (len(bonds) > bond_len):
+                raise Exception('{} bonds. Change padding.'.format(len(bonds)))
 
-                # iterate through all angles
-                angles = []
-                for angle in ob.OBMolAngleIter(mol.OBMol):
-                    a = (angle[0] + 1)
-                    b = mol.OBMol.GetAtom(angle[1] + 1)
-                    c = (angle[2] + 1)
+            bonds.extend([fill_val] * (bond_len - len(bonds)))
 
-                    aType = atomType(mol, a)
-                    cType = atomType(mol, c)
-                    if (cType < aType):
-                        # swap them for lexographic order
-                        aType, cType = cType, aType
+            # iterate through all angles
+            angles = []
+            for angle in ob.OBMolAngleIter(mol.OBMol):
+                a = (angle[0] + 1)
+                b = mol.OBMol.GetAtom(angle[1] + 1)
+                c = (angle[2] + 1)
 
-                    dict3 = {}
-                    angle_type = (encoding(aType) + encoding(b.GetType())
-                                  + encoding(cType))
-                    angle_angle = ("%8.3f" % (b.GetAngle(a, c)))
-                    dict3.update({'Angle_Type': angle_type})
-                    dict3.update({'Angle': angle_angle})
-                    angles.append(dict3)
+                aType = atomType(mol, a)
+                cType = atomType(mol, c)
+                if (cType < aType):
+                    # swap them for lexographic order
+                    aType, cType = cType, aType
 
-                dfa = pd.DataFrame(
-                    angles, columns=['Angle_Type', 'Angle'], dtype=float)
+                angle_type = (encoding(aType) + encoding(b.GetType())
+                              + encoding(cType))
+                angle_angle = ("%8.3f" % (b.GetAngle(a, c)))
+                angles.append(float(angle_type))
+                angles.append(float(angle_angle))
 
-                # check to see if length does not exceed index
-                if (len(dfa) > 200):
-                    raise Exception(
-                        "More than 200 angles. Change angle_index.")
+            # check to see if length does not exceed index
+            if (len(angles) > angle_len):
+                raise Exception(
+                    '{} angles. Change padding.'.format(len(angles)))
 
-                # fix index
-                dfa = dfa.reindex(angle_index, fill_value=-9999999)
+            angles.extend([fill_val] * (angle_len - len(angles)))
 
-                # iterate through all torsions
-                torsions = []
-                for torsion in ob.OBMolTorsionIter(mol.OBMol):
-                    a = (torsion[0] + 1)
-                    b = (torsion[1] + 1)
-                    c = (torsion[2] + 1)
-                    d = (torsion[3] + 1)
+            # iterate through all torsions
+            torsions = []
+            for torsion in ob.OBMolTorsionIter(mol.OBMol):
+                a = (torsion[0] + 1)
+                b = (torsion[1] + 1)
+                c = (torsion[2] + 1)
+                d = (torsion[3] + 1)
 
-                    aType = atomType(mol, a)
-                    bType = atomType(mol, b)
-                    cType = atomType(mol, c)
-                    dType = atomType(mol, d)
+                aType = atomType(mol, a)
+                bType = atomType(mol, b)
+                cType = atomType(mol, c)
+                dType = atomType(mol, d)
 
-                    dict4 = {}
-                    # output in lexographic order
-                    if (aType < dType):
-                        torsion_type = (encoding(aType) + encoding(bType)
-                                        + encoding(cType) + encoding(dType))
-                        torsion_angle = ("%8.3f" %
-                                         ((mol.OBMol.GetTorsion(a, b, c, d))))
-                        dict4.update({'Torsion_Type': torsion_type})
-                        dict4.update({'Torsion': torsion_angle})
-                        torsions.append(dict4)
-                    else:
-                        torsion_type = (encoding(dType) + encoding(cType)
-                                        + encoding(bType) + encoding(aType))
-                        torsion_angle = ("%8.3f" %
-                                         ((mol.OBMol.GetTorsion(a, b, c, d))))
-                        dict4.update({'Torsion_Type': torsion_type})
-                        dict4.update({'Torsion': torsion_angle})
-                        torsions.append(dict4)
+                # output in lexographic order
+                if (aType < dType):
+                    torsion_type = (encoding(aType) + encoding(bType)
+                                    + encoding(cType) + encoding(dType))
+                    torsion_angle = ("%8.3f" %
+                                     ((mol.OBMol.GetTorsion(a, b, c, d))))
+                    torsions.append(float(torsion_type))
+                    torsions.append(float(torsion_angle))
+                else:
+                    torsion_type = (encoding(dType) + encoding(cType)
+                                    + encoding(bType) + encoding(aType))
+                    torsion_angle = ("%8.3f" %
+                                     ((mol.OBMol.GetTorsion(a, b, c, d))))
+                    torsions.append(float(torsion_type))
+                    torsions.append(float(torsion_angle))
 
-                dftor = pd.DataFrame(torsions, columns=[
-                                     'Torsion_Type', 'Torsion'], dtype=float)
+            # check to see if length does not exceed index
+            if (len(torsions) > torsion_len):
+                raise Exception(
+                    '{} torsions. Change padding.'.format(len(torsions)))
 
-                # check to see if length does not exceed index
-                if (len(dftor) > 300):
-                    raise Exception(
-                        "More than 300 torsions. Change torsion_index.")
+            torsions.extend([fill_val] * (torsion_len - len(torsions)))
 
-                # fix index
-                dftor = dftor.reindex(torsion_index, fill_value=-9999999)
+            # iterate through all non-bonded
+            nb = []
+            for pair in ob.OBMolPairIter(mol.OBMol):
+                (first, second) = pair
+                begin_nb = atomType(mol, first)
+                end_nb = atomType(mol, second)
+                dist = mol.OBMol.GetAtom(first).GetDistance(second)
+                if (end_nb[0] < begin_nb[0]):
+                    # swap them for lexographic order
+                    begin_nb, end_nb = end_nb, begin_nb
 
-                                # iterate through all non-bonded
-                nb = []
-                for pair in ob.OBMolPairIter(mol.OBMol):
-                    (first, second) = pair
-                    begin_nb = atomType(mol, first)
-                    end_nb = atomType(mol, second)
-                    dist = mol.OBMol.GetAtom(first).GetDistance(second)
-                    if (end_nb[0] < begin_nb[0]):
-                        # swap them for lexographic order
-                        begin_nb, end_nb = end_nb, begin_nb
+                nonbond_type = encoding(begin_nb) + encoding(end_nb)
+                nonbond_distance = ("%8.4f" % (dist))
+                nb.append(float(nonbond_type))
+                nb.append(float(nonbond_distance))
 
-                    dict5 = {}
-                    nonbond_type = encoding(begin_nb) + encoding(end_nb)
-                    nonbond_distance = ("%8.4f" % (dist))
-                    dict5.update({'NB_Type': nonbond_type})
-                    dict5.update({'NB_Distance': nonbond_distance})
-                    nb.append(dict5)
+            # check to see if length does not exceed index
+            if (len(nb) > nb_len):
+                raise Exception(
+                    '{} nonbonding. Change padding.'.format(len(nb)))
 
-                dfnb = pd.DataFrame(nb, columns=['NB_Type', 'NB_Distance'], dtype=float)
-                dfnb = dfnb.reindex(nonbond_index, fill_value=-9999999)
+            nb.extend([fill_val] * (nb_len - len(nb)))
 
-                # store the descriptors for the molecules in a dictionary
-                dict1 = {}
-                dict1.update({'Bond_Type': dfb['Bond_Type']})
-                dict1.update({'Bond_Length': dfb['Bond_Length']})
-                dict1.update({'Angle_Type': dfa['Angle_Type']})
-                dict1.update({'Angle': dfa['Angle']})
-                dict1.update({'Torsion_Type': dftor['Torsion_Type']})
-                dict1.update({'Torsion': dftor['Torsion']})
-                dict1.update({'NB_Type': dfnb['NB_Type']})
-                dict1.update({'NB_Distance': dfnb['NB_Distance']})
-                dict1.update({'Name': name})
-                dict1.update({'Conformer': conf})
-                dict1.update({'Optimization': opt})
-                # Comment below out if energy is not included in file
-                # dict1.update({'Energy': energy})
-                row_list.append(dict1)
-            else:
-                pass
+            dict1 = {}
+            dict1.update({'Bond': bonds})
+            dict1.update({'Angle': angles})
+            dict1.update({'Torsion': torsions})
+            dict1.update({'NB': nb})
+            dict1.update({'Name': name})
+            dict1.update({'Conformer': conf})
+            dict1.update({'Energy': energy})
+            dict1.update({'PM7E': pm7e})
+            row_list.append(dict1)
+
+        except ValueError:
+            pass
 
 
 # make a dataframe of all the molecules, their descriptors and energies
-df = pd.DataFrame(row_list, columns=['Name', 'Conformer', 'Optimization',
-                                     'Bond_Type', 'Bond_Length',
-                                     'Angle_Type', 'Angle',
-                                     'Torsion_Type', 'Torsion',
-                                     'NB_Type', 'NB_Distance'])
+df = pd.DataFrame(row_list, columns=['Name', 'Conformer',
+                                     'Energy',
+                                     'PM7E',
+                                     'Bond',
+                                     'Angle',
+                                     'Torsion',
+                                     'NB'])
 
-# sort the dataframe to match with the csv
-df.sort_values(by=['Conformer', 'Name'], ascending=[True, True], inplace=True)
-
-# pull DFT energy out of csv
-Energy = df_csv['dftE']
-y = np.asarray(list(Energy), dtype=np.float)
 
 # make an array of all the parts of the molecular descriptors
-bondstuff = np.asarray(list(df['Bond_Type']))
-bondlen = np.asarray(list(df['Bond_Length']))
-anglestuff = np.asarray(list(df['Angle_Type']))
-anglelen = np.asarray(list(df['Angle']))
-torsionstuff = np.asarray(list(df['Torsion_Type']))
-torsionlen = np.asarray(list(df['Torsion']))
-nbstuff = np.asarray(list(df['NB_Type']))
-nblen = np.asarray(list(df['NB_Distance']))
-
-# extract pm7 information from the csv and store in array
-pm7 = []
-for x in range(0, 23911):
-    name = df_csv['Name'].iloc[x]
-    conformer = df_csv['Conformer'].iloc[x]
-    pm7E = df_csv['pm7E'].iloc[x]
-    pm7E = float(pm7E)
-    pm7_value = np.asarray([pm7E])
-    fix_len = ([-9999999] * 1)
-    fix_len = np.asarray(fix_len)
-    pm7_value = np.append(pm7_value, fix_len, axis=0)
-    dict7 = {}
-    dict7.update({'Name': name})
-    dict7.update({'Conformer': conformer})
-    dict7.update({'pm7E': pm7_value})
-    pm7.append(dict7)
-
-df_pm7E = pd.DataFrame(pm7, columns=['Name', 'Conformer', 'pm7E'])
-pm7_info = np.asarray(list(df_pm7E['pm7E']))
-# print(pm7_info.shape) # if array size errors print to see shape
+bonds = np.asarray(list(df['Bond']), dtype=np.float)
+angles = np.asarray(list(df['Angle']), dtype=np.float)
+torsions = np.asarray(list(df['Torsion']), dtype=np.float)
+nbs = np.asarray(list(df['NB']), dtype=np.float)
+pm7 = np.asarray(list(df['PM7E']), dtype=np.float)
+energy = np.asarray(list(df['Energy']), dtype=np.float)
 
 # make the molecular descriptor that will be used as the input
-molecule = np.concatenate((bondstuff, bondlen, anglestuff,
-                           anglelen, torsionstuff, torsionlen,
-                           nbstuff, nblen, pm7_info), axis=1)
+molecule = np.concatenate((bonds, angles, torsions, nbs, pm7), axis=1)
 # print(molecule.shape) # if array size errors print to see shape
 
 # test, train, split for data
-X_train, X_test, y_train, y_test = train_test_split(molecule, y, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(
+    molecule, energy, test_size=0.2)
 # print(X_train.shape) # if array size errors print to see shape
 # print(y_train.shape) # if array size errors print to see shape
 
