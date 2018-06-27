@@ -3,6 +3,11 @@ This is a repository for my graduate studies research.
 
 Currently this repository consists of two working files. The file mol_sql.py can be used to create a database using sqlite format. The file mol_ml.py reads in the molecular information, sorts, and runs a machine learning algorithm in order to predict the desired properties. mol_ml.py uses [scikit-learn](http://scikit-learn.org/stable/) library for regressors and classifiers used in machine learning. 
 
+### To Do:
+ - Write python library 
+   - New library will contain functions to generate representations
+   - This repository will become more of an example implementation repository
+
 ### Future direction:
  - Test on a larger dataset (currently ~700 molecules and ~23,000 conformers have been tested)
  - Modify parameters to increase prediction accuracy 
