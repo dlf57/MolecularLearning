@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/dlf57/MolecularLearning.svg?branch=master)](https://travis-ci.org/dlf57/MolecularLearning)
 [![codecov](https://codecov.io/gh/dlf57/MolecularLearning/branch/molreps/graph/badge.svg)](https://codecov.io/gh/dlf57/MolecularLearning)
 
+This library was created as a graduate student project.
+
 This is a library used to create molecular representations for possible machine learning applications. The representations consist of:  
  - Bonds
  - Bonds and Angles
@@ -16,4 +18,4 @@ The latest version can be installed by cloning the repository and running:
  - openbabel 
 
 ## Contact Information
- - Dakota Folmsbee: dfolmsbee@gmail.com
+ - Dakota Folmsbee: dfolmsbee@gmail.com or dlf57@pitt.edu
