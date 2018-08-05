@@ -14,10 +14,17 @@ mol_file = './tests/methane.sdf'
 def test_bty():
     # test bond representation on methane
     mol = next(pybel.readfile('sdf', mol_file))
+    rep = Representation('BTY', n_bonds=4)
+    bonds = [63010.0, 1.0919, 63010.0, 1.0919, 63010.0,
+             1.0919, 63010.0, 1.0919]
+    assert rep.rep(mol) == bonds
+
+    # test bond representation on methane
+    mol = next(pybel.readfile('sdf', mol_file))
     rep = Representation('BTY', n_bonds=5)
     bonds = [63010.0, 1.0919, 63010.0, 1.0919, 63010.0,
-             1.0919, 63010.0, 1.0919, -99999, -99999]
-    assert rep.rep(mol) == bonds
+             1.0919, 63010.0, 1.0919]
+    assert rep.rep(mol) != bonds
 
 
 def test_baty():
