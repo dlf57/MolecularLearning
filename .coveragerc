@@ -1,0 +1,6 @@
+[report]
+exclude_lines =
+    raise Exception
+    aType, cType = cType, aType
+    begin_nb, end_nb = end_nb, begin_nb
+    

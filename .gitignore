@@ -97,10 +97,9 @@ ENV/
 # mkdocs documentation
 /site
 
-# mypy
-.DS_Store
-.idea/misc.xml
-.idea/modules.xml
-.idea/MolecularLearning.iml
-.idea/vcs.xml
-.idea/workspace.xml
+# pytest
+.pytest_cache
+
+# Mac and text editor files
+.DS_Store 
+.vscode
