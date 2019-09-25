@@ -6,9 +6,10 @@
 This library was created as a graduate student project.
 
 This is a library used to create molecular representations for possible machine learning applications. The representations consist of:  
- - Bonds
- - Bonds and Angles
- - Bonds, Angles, and Torsions
+ - Bonds w/ Atom Typing
+ - Bonds and Angles w/ Atom Typing
+ - Bonds, Angles, and Torsions w/ Atom Typing
+ - Bonds, Angles, Torsions, and Nonbonding w/ Atom Typing
 
 ## Install molreps 
 The latest version can be installed by cloning the repository and running:  
