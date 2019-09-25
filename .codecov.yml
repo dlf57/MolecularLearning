@@ -1,6 +1,6 @@
 # For now only test codecoverage on molreps branch
-codecov:
-  branch: molreps
+# codecov:
+#   branch: molreps
 
 comment:
   layout: header, changes, diff

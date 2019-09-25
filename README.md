@@ -1,7 +1,7 @@
 # MolecularLearning
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![Build Status](https://travis-ci.org/dlf57/MolecularLearning.svg?branch=molreps)](https://travis-ci.org/dlf57/MolecularLearning)
-[![codecov](https://codecov.io/gh/dlf57/MolecularLearning/branch/molreps/graph/badge.svg)](https://codecov.io/gh/dlf57/MolecularLearning)
+[![Build Status](https://travis-ci.org/dlf57/MolecularLearning.svg?branch=master)](https://travis-ci.org/dlf57/MolecularLearning)
+[![codecov](https://codecov.io/gh/dlf57/MolecularLearning/branch/master/graph/badge.svg)](https://codecov.io/gh/dlf57/MolecularLearning)
 
 This library was created as a graduate student project.
 

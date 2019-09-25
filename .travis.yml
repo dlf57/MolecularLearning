@@ -1,9 +1,9 @@
 language: python
 
 # For now only build molreps branch
-branches:
-  only:
-    - molreps
+# branches:
+#   only:
+#     - molreps
 
 # Run jobs on container-based infrastructure, can be overridden per job
 sudo: false
