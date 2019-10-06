@@ -1,11 +1,11 @@
 '''
-Test script to test representation building
+Test script to test unorganized representations
 '''
 # Author: Dakota Folmsbee <dfolmsbee@gmail.com>
 # License: GPLv2
 
 import pybel
-from molreps.reps import Representation
+from molreps.unorganized import Representation
 import pytest
 
 mol_file = './tests/butane.sdf'

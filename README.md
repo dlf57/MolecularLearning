@@ -5,11 +5,22 @@
 
 This library was created as a graduate student project.
 
-This is a library used to create molecular representations for possible machine learning applications. The representations consist of:  
- - Bonds w/ Atom Typing
- - Bonds and Angles w/ Atom Typing
- - Bonds, Angles, and Torsions w/ Atom Typing
- - Bonds, Angles, Torsions, and Nonbonding w/ Atom Typing
+This is a library used to create molecular representations for machine learning applications. There are two types of representations with an organized set similar to standard bag of features representations and an unorganized set.
+
+Organized Represntations:
+ - BTY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds w/ Atom Typing)
+ - BTYNB &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds and Nonbonding w/ Atom Typing)
+ - BATY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds and Angles w/ Atom Typing)
+ - BATYNB &nbsp;&nbsp;&nbsp;(Bonds, Angles, and Nonbonding w/ Atom Typing)
+ - BATTY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds, Angles, and Torsions w/ Atom Typing)
+ - BATTYNB &nbsp;(Bonds, Angles, Torsions, and Nonbonding w/ Atom Typing)
+
+
+Unorganized Representations
+ - BTy &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds w/ Atom Typing)
+ - BATy &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds and Angles w/ Atom Typing)
+ - BATTy &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Bonds, Angles, and Torsions w/ Atom Typing)
+ - BATTyNB &nbsp;(Bonds, Angles, Torsions, and Nonbonding w/ Atom Typing)
 
 ## Install molreps 
 The latest version can be installed by cloning the repository and running:  
